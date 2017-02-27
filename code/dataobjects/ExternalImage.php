@@ -8,16 +8,24 @@ class ExternalImage extends Image
 		'IsDownloaded' => 'Boolean'
 	);
 
+	public function __construct($record = null, $isSingleton = false, $model = null)
+	{
+		parent::__construct($record, $isSingleton, $model);
+		if(!$this->exists()){
+			$this->downloadExternal();
+		}
+	}
+
 	public function downloadExternal()
 	{
-		die();
-		if ($this->ExternalURL) {
+		if ($this->ExternalURL && !$this->exists()) {
 			try {
-				$client = new Guzzle\Http\Client();
-				$request = $client->get($this->ExternalURL, array(), array(
-					'save_to' => '/path/to/file'
-				));
+				$client = new \GuzzleHttp\Client();
+				$res = $client->request('GET', $this->ExternalURL);
+				$extension = File::get_file_extension($this->ExternalURL);
+				file_put_contents($this->getFullPath() . '.' . $extension, $res->getBody());
 				$this->IsDownloaded = true;
+				$this->setName($this->Name . '.' . $extension);
 				$this->write();
 			} catch (Exception $e) {
 				return false;
@@ -27,12 +35,3 @@ class ExternalImage extends Image
 		return false;
 	}
 }
-
-
-
-
-//Test csv: https://daisycon.io/datafeed/?filter_id=14510&settings_id=3290
-//Flow: csv download
-//csv import
-//csv verwijderen
-//last import date zetten
