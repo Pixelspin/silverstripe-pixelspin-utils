@@ -3,10 +3,6 @@
 class ExternalImage extends Image
 {
 
-	private static $indexes = array(
-		'ExternalURL' => true
-	);
-	
 	private static $db = array(
 		'ExternalURL' => 'Varchar(255)',
 		'IsDownloaded' => 'Boolean'
@@ -15,23 +11,23 @@ class ExternalImage extends Image
 	public function __construct($record = null, $isSingleton = false, $model = null)
 	{
 		parent::__construct($record, $isSingleton, $model);
-		if(!$this->exists()){
+		if($this->ID && !$this->IsDownloaded){
 			$this->downloadExternal();
 		}
 	}
 
+	protected function validate() {
+		return new ValidationResult(true);
+	}
+
 	public function downloadExternal()
 	{
-		if ($this->ExternalURL && !$this->exists()) {
+		if ($this->ExternalURL && !$this->IsDownloaded) {
 			try {
 				$client = new \GuzzleHttp\Client();
 				$res = $client->request('GET', $this->ExternalURL);
-				$extension = File::get_file_extension($this->ExternalURL);
-				file_put_contents($this->getFullPath() . '.' . $extension, $res->getBody());
+				file_put_contents($this->getFullPath(), $res->getBody());
 				$this->IsDownloaded = true;
-				$name = pathinfo($this->Name);
-				$name = array_key_exists('filename', $name) ? $name['filename'] : $this->Name;
-				$this->setName($name . '.' . $extension);
 				$this->write();
 			} catch (Exception $e) {
 				return false;
