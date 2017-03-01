@@ -3,6 +3,10 @@
 class ExternalImage extends Image
 {
 
+	private static $indexes = array(
+		'ExternalURL' => true
+	);
+	
 	private static $db = array(
 		'ExternalURL' => 'Varchar(255)',
 		'IsDownloaded' => 'Boolean'
