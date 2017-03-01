@@ -25,7 +25,9 @@ class ExternalImage extends Image
 				$extension = File::get_file_extension($this->ExternalURL);
 				file_put_contents($this->getFullPath() . '.' . $extension, $res->getBody());
 				$this->IsDownloaded = true;
-				$this->setName($this->Name . '.' . $extension);
+				$name = pathinfo($this->Name);
+				$name = array_key_exists('filename', $name) ? $name['filename'] : $this->Name;
+				$this->setName($name . '.' . $extension);
 				$this->write();
 			} catch (Exception $e) {
 				return false;
